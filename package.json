@@ -1,6 +1,6 @@
 {
   "name": "edhindex",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Local-first hybrid code search engine with knowledge graph — BM25 + vector + rerank, tree-sitter parsing, MCP server",
   "keywords": [
     "code-search",
