@@ -14,7 +14,7 @@ npx edhindex <command>
 
 ```sh
 cd ~/your-project
-edhinit index    # initialize index (pick your model + MCP client)
+edhindex init     # initialize index (pick your model + MCP client)
 edhindex start    # build index + start MCP server + watch for changes
 ```
 
