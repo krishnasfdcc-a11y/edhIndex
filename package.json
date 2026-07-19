@@ -1,7 +1,32 @@
 {
   "name": "edhindex",
   "version": "1.0.1",
-  "description": "Local-first hybrid code search engine with MCP",
+  "description": "Local-first hybrid code search engine with knowledge graph — BM25 + vector + rerank, tree-sitter parsing, MCP server",
+  "keywords": [
+    "code-search",
+    "code-index",
+    "semantic-search",
+    "hybrid-search",
+    "knowledge-graph",
+    "mcp",
+    "tree-sitter",
+    "codebase-search",
+    "local-first",
+    "offline"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krishnasfdcc-a11y/edhIndex.git"
+  },
+  "homepage": "https://github.com/krishnasfdcc-a11y/edhIndex#readme",
+  "bugs": {
+    "url": "https://github.com/krishnasfdcc-a11y/edhIndex/issues"
+  },
+  "license": "MIT",
+  "author": "edhdev (https://github.com/krishnasfdcc-a11y)",
+  "engines": {
+    "node": ">=18"
+  },
   "type": "module",
   "bin": {
     "edhindex": "dist/cli/index.js"

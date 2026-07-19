@@ -4,67 +4,207 @@
 
 Local-first hybrid code search engine with Knowledge Graph — zero telemetry, fully offline.
 
-## Setup
-
 ```sh
-npm install -g edhindex      # install globally
+npm install -g edhindex
 # or
-npx edhindex                  # run without installing
+npx edhindex <command>
 ```
 
-Then use it in any project:
+## Quick start
 
 ```sh
 cd ~/your-project
-edhindex init
-edhindex start
+edhinit index    # initialize index (pick your model + MCP client)
+edhindex start    # build index + start MCP server + watch for changes
 ```
+
+Then ask any MCP client (OpenCode, Claude Code, Cline, Cursor, etc.) to search your codebase.
+
+---
+
+## Supported file types
+
+| Language | Extensions | Symbols indexed |
+|----------|-----------|----------------|
+| TypeScript | `.ts`, `.tsx`, `.mts`, `.cts` | functions, methods, classes, interfaces, enums |
+| JavaScript | `.js`, `.jsx`, `.mjs`, `.cjs` | functions, methods, classes |
+| Python | `.py`, `.pyw` | functions, classes |
+| Go | `.go` | functions, methods |
+
+All files are parsed with tree-sitter for accurate symbol extraction, imports, and exports. Unsupported file extensions are silently skipped. Files larger than 10 MB are also skipped.
+
+## What gets ignored
+
+EDHIndex uses three layers of filtering. **Every file must pass all three** to be indexed.
+
+### Layer 1: Default ignore patterns
+
+Directories and files ignored by default (no need for a `.edhindexignore`):
+
+```
+Directories:         node_modules, .git, dist, build, coverage, .next,
+                     out, vendor, bin, obj, target, tmp, .cache, .turbo,
+                     .edhindex
+
+Binaries:            *.exe, *.dll, *.so, *.dylib, *.bin, *.wasm
+                     *.o, *.a, *.lib
+
+Images/Media:        *.png, *.jpg, *.jpeg, *.gif, *.svg, *.ico, *.webp,
+                     *.bmp, *.tiff
+
+Docs/Archives:       *.pdf, *.doc, *.docx, *.xls, *.xlsx, *.ppt, *.pptx
+                     *.zip, *.tar, *.gz, *.bz2, *.7z, *.rar
+
+Audio/Video:         *.mp3, *.wav, *.flac, *.ogg
+                     *.mp4, *.avi, *.mov, *.wmv, *.flv, *.mkv
+
+Generated/Minified:  *.min.js, *.min.css
+                     package-lock.json, yarn.lock, pnpm-lock.yaml
+
+Language artifacts:  *.pyc, *.class, *.jar, *.war
+```
+
+### Layer 2: `.edhindexignore`
+
+Add a `.edhindexignore` file at your project root with additional glob patterns. Supports `#` comments and `!` negation (to re-include a pattern).
+
+Example:
+```
+# ignore generated code
+src/generated/
+*.generated.ts
+```
+
+### Layer 3: Binary + size gate
+
+Files are checked against a blocklist of binary/media/archive extensions and must be under 10 MB.
+
+---
+
+## Indexing modes
+
+EDHIndex has **three indexing strategies** that work together:
+
+### 1. Full index
+
+Scans **every file** from scratch. Runs when no index exists yet, or when the embedding model or chunk schema changes. The full pipeline:
+
+```
+File → tree-sitter parse → extract symbols → chunk (~512 tokens) →
+  → SQLite metadata + FTS5 (keyword) → LanceDB vectors (semantic) → Graph (SQLite)
+```
+
+### 2. Incremental index
+
+Compares file hashes against the previous index. Only **added, modified, or removed** files are re-processed. Used by `edhindex index` when an existing compatible index is found.
+
+### 3. Live file watcher
+
+When `edhindex start` runs (and `watch: true` in config, which is the default), chokidar watches the filesystem. On every save — removes old chunks for the file, re-parses, re-indexes. Debounced at 300ms.
+
+---
+
+## Search pipeline
+
+```
+     User query
+         ↓
+   ┌────────────────┐
+   │  Keyword (BM25) │── SQLite FTS5 → top 30
+   └────────────────┘
+   ┌────────────────┐
+   │  Vector (ANN)   │── transformers.js → LanceDB → top 30
+   └────────────────┘
+         ↓
+   ┌────────────────┐
+   │  Deduplicate    │── max score for duplicates
+   └────────────────┘
+         ↓
+   ┌────────────────┐
+   │  Reranker       │── cross-encoder → final top N
+   └────────────────┘
+         ↓
+     Results with matchType: keyword | vector | hybrid
+```
+
+- **Keyword**: SQLite FTS5 with BM25 scoring (porter + unicode61 tokenizer)
+- **Semantic**: `@huggingface/transformers` embeddings → LanceDB ANN search
+- **Hybrid**: top 30 BM25 + top 30 vectors → deduplicate → rerank → top 10
+- **Reranker**: `Xenova/ms-marco-MiniLM-L-6-v2` cross-encoder (configurable via `edhindex config`)
+
+### Embedding model tiers
+
+| Tier | Model | Dimensions | Download size |
+|------|-------|-----------|--------------|
+| `light` | all-MiniLM-L6-v2 | 384 | ~46 MB |
+| `balanced` (default) | bge-base-en-v1.5 | 768 | ~109 MB |
+| `max` | bge-m3 | 1024 | ~1.1 GB |
+
+Switch with `edhindex config model <tier>`.
+
+---
+
+## Knowledge Graph
+
+Every symbol becomes a node. Imports, exports, and hierarchy become edges. Four graph modes (switch in the UI):
+
+| View | Description |
+|------|-------------|
+| **Force** | Physics-based node layout |
+| **Hierarchy** | Directory tree structure |
+| **Circle** | Circular arrangement |
+| **Grid** | Grid layout |
+
+### Commands
+
+```
+edhindex kg --rebuild    Build the knowledge graph from the index
+edhindex kg --stats      Node/edge counts by type
+edhindex kg --serve      Open interactive browser at localhost
+edhindex kg --write      Write standalone HTML → .edhindex/knowledge-graph.html
+```
+
+Built on tree-sitter + SQLite + Cytoscape.js — all local, no telemetry, no cloud.
+
+### Node/edge types
+
+**Node kinds**: `workspace`, `folder`, `file`, `module`, `class`, `interface`, `enum`, `function`, `method`, `variable`, `import`, `export`
+
+**Edge kinds**: `contains`, `imports`, `exports`, `inherits`, `implements`, `calls`, `references`, `defines`, `belongs_to`
+
+---
 
 ## Commands
 
 | Command | What it does |
-|---|---|
-| `edhindex init` | Initialize index in current directory |
-| `edhindex start` | Build index + start MCP server |
-| `edhindex index` | Build or update the index |
-| `edhindex search <query>` | Search the codebase |
+|---------|-------------|
+| `edhindex init` | Initialize `.edhindex/` — pick model + MCP client |
+| `edhindex start` | Full build + MCP server + file watcher |
+| `edhindex index` | Just build/update the index (no server) |
+| `edhindex search <query>` | CLI hybrid search |
 | `edhindex status` | Index stats |
-| `edhindex kg --rebuild` | Build knowledge graph |
-| `edhindex kg --stats` | Graph statistics |
-| `edhindex kg --serve` | Interactive graph in browser |
-| `edhindex kg --write` | Write graph file for VS Code |
-| `edhindex graph` | Static SVG dependency graph |
 | `edhindex config` | View/update settings |
-| `edhindex doctor` | Diagnostics |
-| `edhindex reset` | Delete the index |
+| `edhindex models` | List available embedding models |
+| `edhindex kg ...` | Knowledge graph operations |
+| `edhindex graph` | Static SVG dependency graph |
+| `edhindex doctor` | Diagnostics (10 checks) |
+| `edhindex reset` | Delete the entire `.edhindex/` |
 
-## Knowledge Graph
-
-Explore your codebase as an interactive node graph.
-
-```
-edhindex kg --serve      # Opens in browser (localhost)
-edhindex kg --write      # Writes .edhindex/knowledge-graph.html
-                         # → drag into VS Code to view
-```
-
-Every symbol becomes a glowing node. Imports, exports, and hierarchy become edges. Click any node for details. Search by name. Switch between Force, Hierarchy, Circle, Grid layouts.
-
-Built on tree-sitter parsing + SQLite + Cytoscape.js — all local, no telemetry, no cloud.
+---
 
 ## MCP Tools
 
-When `edhindex start` is running, any MCP client (OpenCode, Claude Code, Cline, etc.) can call:
+When `edhindex start` is running, any MCP client can call:
 
 | Tool | What it does |
-|---|---|
-| `search_codebase` | Hybrid search (BM25 + vector + rerank) |
+|------|-------------|
+| `search_codebase` | Hybrid search with file/language filters |
 | `get_graph` | Full knowledge graph (nodes + edges) |
-| `get_node` | Node details with neighbors |
+| `get_node` | Node details + neighbors |
 | `search_graph` | Search nodes by name |
 | `get_graph_stats` | Graph statistics |
 
-## MCP Client Setup
+### Client setup
 
 During `edhindex init`, pick your MCP client and the config file is created automatically:
 
@@ -77,25 +217,11 @@ During `edhindex init`, pick your MCP client and the config file is created auto
 - **GitHub Copilot** → `.vscode/settings.json`
 - **Continue** → `.continue/config.json`
 
-## How it works
-
-```
-Source code → Tree-sitter → Chunks → SQLite (metadata + FTS5)
-                                       → LanceDB (vectors)
-                                       → Graph (SQLite)
-                                               ↓
-                    MCP Server ← Search Engine ← Hybrid Rerank
-```
-
-- **Keyword search**: SQLite FTS5 (BM25)
-- **Semantic search**: transformers.js embeddings → LanceDB vector search
-- **Hybrid**: Top 30 BM25 + top 30 vectors → deduplicate → rerank → top 10
-- **Knowledge Graph**: Symbols, files, folders, imports/exports, hierarchy
+---
 
 ## Requirements
 
 - Node.js 18+
-- npm
 
 ## License
 
