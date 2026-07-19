@@ -4,7 +4,7 @@
   "description": "Local-first hybrid code search engine with MCP",
   "type": "module",
   "bin": {
-    "edhindex": "./dist/cli/index.js"
+    "edhindex": "dist/cli/index.js"
   },
   "exports": {
     ".": "./dist/index.js"
