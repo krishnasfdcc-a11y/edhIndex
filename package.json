@@ -1,0 +1,39 @@
+{
+  "name": "edhindex",
+  "version": "1.0.0",
+  "description": "Local-first hybrid code search engine with MCP",
+  "type": "module",
+  "bin": {
+    "edhindex": "./dist/cli/index.js"
+  },
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli/index.js",
+    "dev": "npx tsx src/cli/index.ts"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.4.0",
+"@huggingface/transformers": "^4.2.0",
+    "@lancedb/lancedb": "^0.31.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "better-sqlite3": "^12.11.1",
+    "chalk": "^5.6.2",
+    "chokidar": "^5.0.0",
+    "cli-progress": "^3.12.0",
+    "commander": "^15.0.0",
+    "simple-git": "^3.36.0",
+    "tree-sitter-go": "^0.25.0",
+    "tree-sitter-python": "^0.25.0",
+    "tree-sitter-typescript": "^0.23.2",
+    "web-tree-sitter": "^0.26.11"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/cli-progress": "^3.11.6",
+    "@types/node": "^22.13.0",
+    "typescript": "^5.7.0"
+  }
+}
