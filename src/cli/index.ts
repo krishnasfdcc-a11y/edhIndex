@@ -9,6 +9,9 @@ import { statusCommand } from './commands/status.js';
 import { configCommand } from './commands/config_cmd.js';
 import { modelsCommand } from './commands/models.js';
 import { doctorCommand } from './commands/doctor_cmd.js';
+import { resetCommand } from './commands/reset.js';
+import { graphCommand } from './commands/graph.js';
+import { kgCommand } from './commands/knowledge-graph.js';
 import { setLogLevel, LogLevel } from '../logging.js';
 
 const program = new Command();
@@ -94,6 +97,36 @@ program
     const rootPath = process.cwd();
     const indexDir = join(rootPath, '.edhindex');
     await doctorCommand(rootPath, indexDir);
+  });
+
+program
+  .command('reset')
+  .description('Delete the index and all stored data')
+  .action(async () => {
+    const rootPath = process.cwd();
+    await resetCommand(rootPath);
+  });
+
+program
+  .command('graph')
+  .description('Generate a dependency graph (SVG)')
+  .option('-o, --output <path>', 'Output file path')
+  .action(async (opts: { output?: string }) => {
+    const rootPath = process.cwd();
+    await graphCommand(rootPath, opts.output);
+  });
+
+program
+  .command('kg')
+  .description('Knowledge graph — build, stats, serve, write, and query')
+  .option('-r, --rebuild', 'Rebuild graph from index')
+  .option('-s, --stats', 'Show graph statistics')
+  .option('--serve', 'Start interactive graph viewer (opens browser)')
+  .option('-w, --write', 'Write graph viewer to .edhindex/knowledge-graph.html')
+  .option('-p, --port <number>', 'Port for graph viewer (default: random)')
+  .action(async (opts: { rebuild?: boolean; stats?: boolean; serve?: boolean; write?: boolean; port?: string }) => {
+    const rootPath = process.cwd();
+    await kgCommand(rootPath, opts);
   });
 
 program.parse(process.argv);

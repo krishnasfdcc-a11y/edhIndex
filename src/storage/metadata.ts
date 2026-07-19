@@ -84,6 +84,14 @@ export class MetadataStore {
     this.db.exec('ROLLBACK');
   }
 
+  getAllFilesWithImports(): { file: string; language: string; imports: string; exports: string; chunkCount: number }[] {
+    return this.db.prepare(`
+      SELECT c.file, c.language, c.imports, c.exports, COUNT(*) as chunkCount
+      FROM chunks c
+      GROUP BY c.file
+    `).all() as { file: string; language: string; imports: string; exports: string; chunkCount: number }[];
+  }
+
   upsertChunk(chunk: ChunkMetadata) {
     const stmt = this.db.prepare(`
       INSERT OR REPLACE INTO chunks
@@ -143,7 +151,7 @@ export class MetadataStore {
   }
 
   getChunksForFile(file: string): ChunkMetadata[] {
-    return this.db.prepare('SELECT * FROM chunks WHERE file = ?').all() as ChunkMetadata[];
+    return this.db.prepare('SELECT * FROM chunks WHERE file = ?').all(file) as ChunkMetadata[];
   }
 
   getChunkCount(): number {

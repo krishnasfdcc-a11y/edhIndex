@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { loadConfig, MODEL_CONFIGS } from '../../config/index.js';
 import { logger, setLogLevel, LogLevel, getLogLevel } from '../../logging.js';
 import { emitProgress, onProgress } from '../../progress.js';
@@ -12,6 +12,10 @@ import { Indexer } from '../../indexer/indexer.js';
 import { SearchEngine } from '../../retrieval/search.js';
 import { createMCPServer } from '../../mcp/server.js';
 import { FileWatcher } from '../../watcher/index.js';
+import { buildGraphData } from '../../graph/build.js';
+import { generateSVG } from '../../graph/svg.js';
+import { GraphBuilder } from '../../graph/builder.js';
+import { GraphStore } from '../../graph/storage.js';
 import cliProgress from 'cli-progress';
 import chalk from 'chalk';
 
@@ -32,23 +36,23 @@ export async function startCommand(rootPath: string) {
   };
   setLogLevel(logLevelMap[config.logLevel] || LogLevel.Info);
 
-  console.log(chalk.bold('EDHIndex v1.0.0'));
-  console.log(`Workspace: ${rootPath}`);
-  console.log(`Model: ${modelCfg.displayName} (${modelCfg.dimensions}d)`);
-  console.log(`Languages: ${config.languages.join(', ')}`);
-  console.log('');
+  console.error(chalk.bold('EDHIndex v1.0.0'));
+  console.error(`Workspace: ${rootPath}`);
+  console.error(`Model: ${modelCfg.displayName} (${modelCfg.dimensions}d)`);
+  console.error(`Languages: ${config.languages.join(', ')}`);
+  console.error('');
 
   // Check index version
   const version = loadVersion(indexDir);
   if (needsRebuild(version, config.model)) {
     if (version) {
-      console.log(chalk.yellow('Index version mismatch — full rebuild required.'));
-      console.log(chalk.dim(`  Expected model: ${config.model}, existing: ${version.embeddingModel}`));
+      console.error(chalk.yellow('Index version mismatch — full rebuild required.'));
+      console.error(chalk.dim(`  Expected model: ${config.model}, existing: ${version.embeddingModel}`));
     } else {
-      console.log(chalk.dim('No existing index found — building from scratch.'));
+      console.error(chalk.dim('No existing index found — building from scratch.'));
     }
   } else {
-    console.log(chalk.dim('Existing index is compatible — incremental update.'));
+    console.error(chalk.dim('Existing index is compatible — incremental update.'));
   }
 
   // Setup progress bar
@@ -66,7 +70,7 @@ export async function startCommand(rootPath: string) {
   });
 
   // Initialize stores
-  console.log(chalk.dim('Initializing storage...'));
+  console.error(chalk.dim('Initializing storage...'));
   const metadataStore = new MetadataStore(indexDir);
   const ftsStore = new FTSStore(indexDir);
 
@@ -76,13 +80,13 @@ export async function startCommand(rootPath: string) {
 
   // Initialize embedding provider
   const embedder = new TransformersEmbeddingProvider(config.model);
-  console.log(chalk.dim(`Loading embedding model (${modelCfg.displayName})...`));
+  console.error(chalk.dim(`Loading embedding model (${modelCfg.displayName})...`));
   await embedder.load();
 
   // Initialize reranker if enabled
   let reranker: TransformersReranker | null = null;
   if (config.rerank) {
-    console.log(chalk.dim('Loading reranker model...'));
+    console.error(chalk.dim('Loading reranker model...'));
     reranker = new TransformersReranker();
     await reranker.load();
   }
@@ -150,7 +154,7 @@ export async function startCommand(rootPath: string) {
   const doFullRebuild = needsRebuild(version, config.model) || existingFileHashes.size === 0;
 
   // Index
-  console.log('');
+  console.error('');
   progressBar = new cliProgress.SingleBar({
     format: '{phase} | {bar} | {percentage}% | {value}/{total}',
     barCompleteChar: '\u2588',
@@ -160,20 +164,20 @@ export async function startCommand(rootPath: string) {
 
   if (doFullRebuild) {
     progressBar.start(100, 0, { phase: 'Scanning' });
-    console.log(chalk.dim('Running full index...'));
+    console.error(chalk.dim('Running full index...'));
     const chunks = await indexer.runFullIndex();
     progressBar.stop();
-    console.log(chalk.green(`Indexed ${chunks.length} chunks.`));
+    console.error(chalk.green(`Indexed ${chunks.length} chunks.`));
 
     // Save version
     const newVersion = getExpectedVersion(config.model);
     saveVersion(indexDir, newVersion);
   } else {
     progressBar.start(100, 0, { phase: 'Scanning' });
-    console.log(chalk.dim('Running incremental index...'));
+    console.error(chalk.dim('Running incremental index...'));
     const result = await indexer.runIncremental(existingFileHashes, existingChunkHashes);
     progressBar.stop();
-    console.log(chalk.green(`Indexed ${result.chunks.length} chunks, removed ${result.removed.length} files.`));
+    console.error(chalk.green(`Indexed ${result.chunks.length} chunks, removed ${result.removed.length} files.`));
 
     // Update version
     const existingVersion = version!;
@@ -227,11 +231,40 @@ export async function startCommand(rootPath: string) {
       }
     });
     await watcher.start();
-    console.log(chalk.green('File watcher started.'));
+    console.error(chalk.green('File watcher started.'));
+  }
+
+  // Generate dependency graph SVG
+  try {
+    const { nodes, edges, fileCount, edgeCount } = buildGraphData(metadataStore);
+    if (fileCount > 0) {
+      const svg = generateSVG(rootPath, nodes, edges);
+      writeFileSync(join(rootPath, 'edhindex-graph.svg'), svg, 'utf-8');
+      logger.verbose(`SVG graph: ${fileCount} files, ${edgeCount} edges`);
+    }
+  } catch (e) {
+    logger.debug('Failed to generate graph SVG:', e);
+  }
+
+  // Build knowledge graph
+  if (config.graphEnabled) {
+    try {
+      logger.info('Building knowledge graph...');
+      const graphStore = new GraphStore(indexDir);
+      const builder = new GraphBuilder(rootPath, metadataStore, graphStore);
+      builder.buildFull();
+      const { nodeCount, edgeCount } = { nodeCount: graphStore.getNodeCount(), edgeCount: graphStore.getEdgeCount() };
+      graphStore.close();
+      console.error(chalk.dim(`\n  Knowledge Graph: ${nodeCount} nodes, ${edgeCount} edges`));
+      console.error(chalk.dim(`  View in browser:  edhindex kg --serve`));
+      console.error(chalk.dim(`  View in VS Code:  edhindex kg --write`));
+    } catch (e) {
+      logger.debug('Failed to build knowledge graph:', e);
+    }
   }
 
   // Start MCP server
-  console.log(chalk.green('Starting MCP server on stdio...'));
+  console.error(chalk.green('Starting MCP server on stdio...'));
   const mcpServer = createMCPServer(searchEngine, rootPath);
 
   const transport = await import('@modelcontextprotocol/sdk/server/stdio.js');
@@ -240,7 +273,7 @@ export async function startCommand(rootPath: string) {
 
   // Handle shutdown
   const shutdown = async () => {
-    console.log(chalk.yellow('\nShutting down...'));
+    console.error(chalk.yellow('\nShutting down...'));
     if (watcher) await watcher.stop();
     vectorStore.close();
     metadataStore.close();

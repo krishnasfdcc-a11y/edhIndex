@@ -15,8 +15,7 @@
     "dev": "npx tsx src/cli/index.ts"
   },
   "dependencies": {
-    "@huggingface/transformers": "^3.4.0",
-"@huggingface/transformers": "^4.2.0",
+    "@huggingface/transformers": "^4.2.0",
     "@lancedb/lancedb": "^0.31.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "better-sqlite3": "^12.11.1",

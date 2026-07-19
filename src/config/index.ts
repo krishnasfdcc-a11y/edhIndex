@@ -4,6 +4,7 @@ import { logger } from '../logging.js';
 
 export type ModelTier = 'light' | 'balanced' | 'max';
 export type LogLevelConfig = 'silent' | 'info' | 'verbose' | 'debug';
+export type GraphLayoutConfig = 'force' | 'hierarchical' | 'circular' | 'grid';
 
 export interface Config {
   model: ModelTier;
@@ -12,6 +13,12 @@ export interface Config {
   rerank: boolean;
   maxResults: number;
   logLevel: LogLevelConfig;
+  graphEnabled: boolean;
+  graphLayout: GraphLayoutConfig;
+  graphAnimations: boolean;
+  graphShowFolders: boolean;
+  graphShowFiles: boolean;
+  graphShowFunctions: boolean;
 }
 
 const DEFAULT_CONFIG: Config = {
@@ -21,6 +28,12 @@ const DEFAULT_CONFIG: Config = {
   rerank: true,
   maxResults: 10,
   logLevel: 'info',
+  graphEnabled: true,
+  graphLayout: 'force',
+  graphAnimations: true,
+  graphShowFolders: true,
+  graphShowFiles: true,
+  graphShowFunctions: true,
 };
 
 export function defaultConfig(): Config {
