@@ -217,10 +217,15 @@ export class GraphBuilder {
       case 'class': return 'class';
       case 'interface': return 'interface';
       case 'enum': return 'enum';
+      case 'struct': return 'class';
+      case 'trait': return 'interface';
       case 'function': return 'function';
       case 'method': return 'method';
       case 'variable': return 'variable';
+      case 'constant': return 'variable';
+      case 'property': return 'variable';
       case 'module': return 'module';
+      case 'namespace': return 'module';
       default: return 'module';
     }
   }

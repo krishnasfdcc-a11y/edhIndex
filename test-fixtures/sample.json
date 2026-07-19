@@ -1,0 +1,130 @@
+{
+  "name": "edhindex",
+  "version": "1.1.0",
+  "description": "Local-first hybrid code search engine with knowledge graph",
+  "type": "module",
+  "keywords": ["code-search", "semantic-search", "knowledge-graph", "mcp", "tree-sitter"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli/index.js",
+    "test": "vitest run",
+    "dev": "npx tsx src/cli/index.ts",
+    "prepublishOnly": "npm run build",
+    "postinstall": "npx tsc || true",
+    "lint": "echo ok",
+    "typecheck": "tsc --noEmit"
+  },
+  "config": {
+    "model": "balanced",
+    "languages": ["ts", "js", "py", "go", "rs", "java", "rb", "c", "cpp", "csharp", "php", "html", "css", "json"],
+    "watch": true,
+    "rerank": true,
+    "maxResults": 10,
+    "logLevel": "info",
+    "graphEnabled": true,
+    "graphLayout": "force",
+    "graphAnimations": true,
+    "graphShowFolders": true,
+    "graphShowFiles": true,
+    "graphShowFunctions": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krishnasfdcc-a11y/edhIndex.git"
+  },
+  "bugs": {
+    "url": "https://github.com/krishnasfdcc-a11y/edhIndex/issues"
+  },
+  "homepage": "https://github.com/krishnasfdcc-a11y/edhIndex#readme",
+  "author": "edhdev",
+  "dependencies": {
+    "web-tree-sitter": "^0.26.11",
+    "tree-sitter-typescript": "^0.23.2",
+    "tree-sitter-python": "^0.25.0",
+    "tree-sitter-go": "^0.25.0",
+    "tree-sitter-rust": "^0.24.0",
+    "tree-sitter-java": "^0.23.5",
+    "tree-sitter-ruby": "^0.23.1",
+    "tree-sitter-c": "^0.24.1",
+    "tree-sitter-cpp": "^0.23.4",
+    "tree-sitter-c-sharp": "^0.23.5",
+    "tree-sitter-php": "^0.24.2",
+    "tree-sitter-css": "^0.25.0",
+    "tree-sitter-json": "^0.24.8",
+    "tree-sitter-html": "^0.23.2",
+    "tree-sitter-typescript": "^0.23.2",
+    "tree-sitter-python": "^0.25.0",
+    "tree-sitter-go": "^0.25.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.0",
+    "@types/node": "^22.13.0"
+  },
+  "ai": {
+    "models": {
+      "light": {
+        "id": "all-MiniLM-L6-v2",
+        "dims": 384,
+        "size": "46MB"
+      },
+      "balanced": {
+        "id": "bge-base-en-v1.5",
+        "dims": 768,
+        "size": "109MB"
+      },
+      "max": {
+        "id": "bge-m3",
+        "dims": 1024,
+        "size": "1.1GB"
+      }
+    },
+    "reranker": "ms-marco-MiniLM-L-6-v2"
+  },
+  "graph": {
+    "layouts": ["force", "hierarchical", "circular", "grid"],
+    "nodeTypes": [
+      "workspace", "folder", "file", "class", "function",
+      "method", "interface", "enum", "struct", "trait",
+      "module", "variable", "import", "export"
+    ],
+    "edgeTypes": [
+      "contains", "imports", "exports", "defines",
+      "inherits", "implements", "calls", "references"
+    ]
+  },
+  "supportedLanguages": [
+    { "name": "TypeScript", "key": "ts", "extensions": [".ts", ".tsx", ".mts", ".cts"], "tier": 1 },
+    { "name": "JavaScript", "key": "js", "extensions": [".js", ".jsx", ".mjs", ".cjs"], "tier": 1 },
+    { "name": "Python", "key": "py", "extensions": [".py", ".pyw"], "tier": 1 },
+    { "name": "Go", "key": "go", "extensions": [".go"], "tier": 1 },
+    { "name": "Rust", "key": "rs", "extensions": [".rs"], "tier": 1 },
+    { "name": "Java", "key": "java", "extensions": [".java"], "tier": 1 },
+    { "name": "Ruby", "key": "rb", "extensions": [".rb"], "tier": 1 },
+    { "name": "C", "key": "c", "extensions": [".c", ".h"], "tier": 1 },
+    { "name": "C++", "key": "cpp", "extensions": [".cpp", ".cxx", ".cc"], "tier": 1 },
+    { "name": "C#", "key": "csharp", "extensions": [".cs"], "tier": 1 },
+    { "name": "PHP", "key": "php", "extensions": [".php"], "tier": 1 },
+    { "name": "HTML", "key": "html", "extensions": [".html", ".htm"], "tier": 2 },
+    { "name": "CSS", "key": "css", "extensions": [".css", ".scss", ".less"], "tier": 2 },
+    { "name": "JSON", "key": "json", "extensions": [".json"], "tier": 2 }
+  ],
+  "binaryExtensions": [
+    ".exe", ".dll", ".so", ".dylib", ".bin", ".wasm",
+    ".o", ".a", ".lib", ".pyc", ".class", ".jar", ".war",
+    ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico",
+    ".webp", ".bmp", ".tiff",
+    ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+    ".zip", ".tar", ".gz", ".bz2", ".7z", ".rar",
+    ".mp4", ".avi", ".mov", ".wmv", ".flv", ".mkv",
+    ".mp3", ".wav", ".flac", ".ogg"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "readme": "README.md"
+}

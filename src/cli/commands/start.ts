@@ -9,6 +9,7 @@ import { FTSStore } from '../../storage/fts.js';
 import { TransformersEmbeddingProvider, TransformersReranker } from '../../embeddings/transformers.js';
 import { LanceDBStore } from '../../vector/lancedb.js';
 import { Indexer } from '../../indexer/indexer.js';
+import { defaultRegistry } from '../../language/registry.js';
 import { SearchEngine } from '../../retrieval/search.js';
 import { createMCPServer } from '../../mcp/server.js';
 import { FileWatcher } from '../../watcher/index.js';
@@ -96,6 +97,7 @@ export async function startCommand(rootPath: string) {
     config,
     rootPath,
     indexDir,
+    registry: defaultRegistry,
     onIndex: async (result) => {
       for (const chunk of result.chunks) {
         metadataStore.upsertChunk({
@@ -196,7 +198,7 @@ export async function startCommand(rootPath: string) {
     watcher = new FileWatcher(rootPath, async (filePath) => {
       logger.info(`File changed: ${filePath}`);
       const { scanFiles } = await import('../../indexer/file-utils.js');
-      const files = scanFiles(rootPath, config.languages);
+      const files = scanFiles(rootPath, defaultRegistry);
       const file = files.find(f => f.relativePath === filePath);
       if (file) {
         const oldChunks = metadataStore.getChunksForFile(filePath);

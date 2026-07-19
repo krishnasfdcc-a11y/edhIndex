@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { SymbolInfo } from './parser.js';
+import { CodeSymbol } from '../language/types.js';
 import { logger } from '../logging.js';
 
 export interface Chunk {
@@ -31,7 +31,7 @@ export async function chunkFile(
   filePath: string,
   relativePath: string,
   language: string,
-  symbols: SymbolInfo[],
+  symbols: CodeSymbol[],
   content: string,
   lines: string[],
   imports: string[],
@@ -43,13 +43,15 @@ export async function chunkFile(
     method: 1,
     class: 2,
     interface: 3,
+    struct: 3,
+    trait: 3,
     enum: 4,
     module: 5,
   };
 
   const sorted = [...symbols].sort((a, b) => {
-    const aP = priorityOrder[a.kind] ?? 99;
-    const bP = priorityOrder[b.kind] ?? 99;
+    const aP = priorityOrder[a.type] ?? 99;
+    const bP = priorityOrder[b.type] ?? 99;
     if (aP !== bP) return aP - bP;
     return a.startLine - b.startLine;
   });
@@ -60,7 +62,7 @@ export async function chunkFile(
     if (isCovered(covered, sym.startLine, sym.endLine)) continue;
     markCovered(covered, sym.startLine, sym.endLine);
 
-    const chunkContent = sym.text || content.slice(
+    const chunkContent = content.slice(
       content.split('\n').slice(0, sym.startLine - 1).join('\n').length + (sym.startLine > 1 ? 1 : 0),
       content.split('\n').slice(0, sym.endLine).join('\n').length
     );
@@ -72,7 +74,7 @@ export async function chunkFile(
         file: relativePath,
         language,
         symbol: sym.name,
-        kind: sym.kind,
+        kind: sym.type,
         parent: null,
         hash,
         startLine: sym.startLine,
@@ -83,7 +85,7 @@ export async function chunkFile(
       });
     } else {
       const childChunks = splitRecursive(
-        chunkContent, lines, sym.startLine, sym.name, sym.kind,
+        chunkContent, lines, sym.startLine, sym.name, sym.type,
         relativePath, language, imports, exports
       );
       chunks.push(...childChunks);

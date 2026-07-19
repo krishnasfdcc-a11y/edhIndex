@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EDHIndex Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header id="main-header">
+    <nav class="navbar">
+      <div class="logo">EDHIndex</div>
+      <ul class="nav-links">
+        <li><a href="#dashboard">Dashboard</a></li>
+        <li><a href="#search">Search</a></li>
+        <li><a href="#graph">Knowledge Graph</a></li>
+        <li><a href="#settings">Settings</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="dashboard">
+    <section class="stats-grid">
+      <div class="stat-card">
+        <h3>Files Indexed</h3>
+        <p class="stat-value" id="file-count">1,234</p>
+      </div>
+      <div class="stat-card">
+        <h3>Chunks</h3>
+        <p class="stat-value" id="chunk-count">8,567</p>
+      </div>
+      <div class="stat-card">
+        <h3>Languages</h3>
+        <p class="stat-value" id="lang-count">17</p>
+      </div>
+      <div class="stat-card">
+        <h3>Symbols</h3>
+        <p class="stat-value" id="symbol-count">42,890</p>
+      </div>
+    </section>
+
+    <section id="search" class="search-section">
+      <h2>Search Codebase</h2>
+      <div class="search-bar">
+        <input type="text" id="query-input" placeholder="Search your codebase...">
+        <button id="search-btn" onclick="search()">Search</button>
+      </div>
+      <div id="search-results" class="results-list"></div>
+    </section>
+
+    <section id="graph" class="graph-section">
+      <h2>Knowledge Graph</h2>
+      <div class="graph-controls">
+        <button class="layout-btn active" data-layout="force">Force</button>
+        <button class="layout-btn" data-layout="hierarchy">Hierarchy</button>
+        <button class="layout-btn" data-layout="circle">Circle</button>
+        <button class="layout-btn" data-layout="grid">Grid</button>
+      </div>
+      <div id="graph-container" class="graph-container">
+        <svg viewBox="0 0 800 500" class="graph-svg">
+          <defs>
+            <radialGradient id="node-glow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.6"/>
+              <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <g class="graph-edges">
+            <line x1="400" y1="40" x2="200" y2="150" stroke="#a78bfa" stroke-width="1.5" opacity="0.4"/>
+            <line x1="400" y1="40" x2="600" y2="150" stroke="#a78bfa" stroke-width="1.5" opacity="0.4"/>
+            <line x1="200" y1="150" x2="100" y2="280" stroke="#a78bfa" stroke-width="1.5" opacity="0.4"/>
+            <line x1="200" y1="150" x2="300" y2="280" stroke="#a78bfa" stroke-width="1.5" opacity="0.4"/>
+            <line x1="600" y1="150" x2="500" y2="280" stroke="#a78bfa" stroke-width="1.5" opacity="0.4"/>
+            <line x1="600" y1="150" x2="700" y2="280" stroke="#a78bfa" stroke-width="1.5" opacity="0.4"/>
+          </g>
+          <g class="graph-nodes">
+            <circle cx="400" cy="40" r="18" fill="#7c3aed"/>
+            <text x="400" y="46" text-anchor="middle" fill="#fff" font-size="10">app.ts</text>
+            <circle cx="200" cy="150" r="14" fill="#6366f1"/>
+            <text x="200" y="156" text-anchor="middle" fill="#fff" font-size="9">auth.ts</text>
+            <circle cx="600" cy="150" r="14" fill="#6366f1"/>
+            <text x="600" y="156" text-anchor="middle" fill="#fff" font-size="9">db.ts</text>
+            <circle cx="100" cy="280" r="10" fill="#8b5cf6"/>
+            <text x="100" y="286" text-anchor="middle" fill="#fff" font-size="8">login()</text>
+            <circle cx="300" cy="280" r="10" fill="#8b5cf6"/>
+            <text x="300" y="286" text-anchor="middle" fill="#fff" font-size="8">User</text>
+            <circle cx="500" cy="280" r="10" fill="#8b5cf6"/>
+            <text x="500" y="286" text-anchor="middle" fill="#fff" font-size="8">query()</text>
+            <circle cx="700" cy="280" r="10" fill="#8b5cf6"/>
+            <text x="700" y="286" text-anchor="middle" fill="#fff" font-size="8">Schema</text>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <section id="settings" class="settings-section">
+      <h2>Settings</h2>
+      <form id="settings-form">
+        <div class="form-group">
+          <label for="model-select">Embedding Model</label>
+          <select id="model-select">
+            <option value="light">Light (all-MiniLM-L6-v2)</option>
+            <option value="balanced" selected>Balanced (bge-base-en-v1.5)</option>
+            <option value="max">Max (bge-m3)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="lang-select">Languages</label>
+          <select id="lang-select" multiple>
+            <option selected>TypeScript</option>
+            <option selected>Python</option>
+            <option selected>Go</option>
+            <option>Rust</option>
+            <option>Java</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="watch-toggle">File Watching</label>
+          <input type="checkbox" id="watch-toggle" checked>
+        </div>
+        <div class="form-group">
+          <label for="rerank-toggle">Reranker</label>
+          <input type="checkbox" id="rerank-toggle" checked>
+        </div>
+        <button type="submit" class="btn-primary">Save Settings</button>
+      </form>
+    </section>
+  </main>
+
+  <footer id="main-footer">
+    <p>EDHIndex v1.1.0 — Local-first code search engine</p>
+    <p>Powered by tree-sitter, transformers.js, and SQLite</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,28 +1,45 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { initParser, loadLanguage, parseContentAsync, extractSymbols, extractImports, extractExports } from './parser.js';
+import { LanguageRegistry } from '../language/registry.js';
 
-const LANGUAGES = [
-  { key: 'ts', name: 'TypeScript' },
-  { key: 'js', name: 'JavaScript' },
-  { key: 'py', name: 'Python' },
-  { key: 'go', name: 'Go' },
-  { key: 'rs', name: 'Rust' },
-  { key: 'java', name: 'Java' },
-  { key: 'rb', name: 'Ruby' },
-  { key: 'c', name: 'C' },
-  { key: 'cpp', name: 'C++' },
-  { key: 'csharp', name: 'C#' },
-  { key: 'php', name: 'PHP' },
-  { key: 'scala', name: 'Scala' },
-  { key: 'hs', name: 'Haskell' },
-  { key: 'solidity', name: 'Solidity' },
-];
+const registry = new LanguageRegistry();
+const adapters = registry.getInfoList().filter(a => a.key !== 'generic');
 
-const FILE_ONLY_LANGUAGES = [
-  { key: 'css', name: 'CSS' },
-  { key: 'json', name: 'JSON' },
-  { key: 'html', name: 'HTML' },
-];
+describe('Language Adapter Registry', () => {
+  it('registers all adapters', () => {
+    expect(adapters.length).toBeGreaterThan(0);
+    expect(adapters.find(a => a.key === 'ts')).toBeTruthy();
+    expect(adapters.find(a => a.key === 'py')).toBeTruthy();
+    expect(adapters.find(a => a.key === 'go')).toBeTruthy();
+    expect(adapters.find(a => a.key === 'rs')).toBeTruthy();
+    expect(adapters.find(a => a.key === 'java')).toBeTruthy();
+    expect(adapters.find(a => a.key === 'html')).toBeTruthy();
+    expect(adapters.find(a => a.key === 'css')).toBeTruthy();
+    expect(adapters.find(a => a.key === 'json')).toBeTruthy();
+  });
+
+  it('maps file extensions to correct adapters', () => {
+    expect(registry.getAdapter('file.ts').key).toBe('ts');
+    expect(registry.getAdapter('file.js').key).toBe('js');
+    expect(registry.getAdapter('file.py').key).toBe('py');
+    expect(registry.getAdapter('file.go').key).toBe('go');
+    expect(registry.getAdapter('file.rs').key).toBe('rs');
+    expect(registry.getAdapter('file.java').key).toBe('java');
+    expect(registry.getAdapter('file.rb').key).toBe('rb');
+    expect(registry.getAdapter('file.c').key).toBe('c');
+    expect(registry.getAdapter('file.cpp').key).toBe('cpp');
+    expect(registry.getAdapter('file.cs').key).toBe('csharp');
+    expect(registry.getAdapter('file.php').key).toBe('php');
+    expect(registry.getAdapter('file.html').key).toBe('html');
+    expect(registry.getAdapter('file.css').key).toBe('css');
+    expect(registry.getAdapter('file.json').key).toBe('json');
+  });
+
+  it('returns generic for unknown extensions', () => {
+    const { adapter, key } = registry.getAdapter('file.xyz');
+    expect(key).toBe('generic');
+    expect(adapter.languageName()).toBe('Generic');
+  });
+});
 
 const SAMPLES: Record<string, string> = {
   ts: `import { readFileSync } from 'node:fs';
@@ -73,89 +90,38 @@ function hello() {}
 class App {
     public function start() {}
 }`,
-  scala: `object App {
-  def hello(): Unit = {}
-  class User
-  trait Logger
-}`,
-  hs: `module Main where
-hello :: String -> String
-hello x = x
-class Show a where`,
-  solidity: `pragma solidity ^0.8.0;
-contract App {
-    function hello() external {}
-    event Transfer(address indexed from);
-}`,
+  json: `{ "name": "test", "version": "1.0.0" }`,
   css: `.btn { color: red; }
 #header { font-size: 16px; }`,
-  json: `{ "name": "test", "version": "1.0.0" }`,
   html: `<!DOCTYPE html><html><body><p>Hello</p></body></html>`,
 };
 
-beforeAll(async () => {
-  await initParser();
-}, 30000);
+for (const info of adapters) {
+  const sample = SAMPLES[info.key];
+  if (!sample) continue;
 
-for (const { key, name } of LANGUAGES) {
-  describe(`${name} (${key})`, () => {
-    let tree: any;
-    let rootNode: any;
-
-    it('loads WASM grammar', async () => {
-      const lang = await loadLanguage(key);
-      expect(lang).toBeTruthy();
-    }, 15000);
+  describe(`${info.name} (${info.key})`, () => {
+    const { adapter } = registry.getAdapter(`file.${info.extensions[0]?.replace('.', '') || 'txt'}`);
 
     it('parses content', async () => {
-      const result = await parseContentAsync(SAMPLES[key], key);
-      tree = result.tree;
-      rootNode = result.rootNode;
-      expect(rootNode).toBeTruthy();
-      expect(rootNode.type).toBeTruthy();
-    }, 10000);
+      const result = await adapter.parse(sample, `file${info.extensions[0] || ''}`);
+      expect(result).toBeTruthy();
+      expect(Array.isArray(result.symbols)).toBe(true);
+      expect(Array.isArray(result.imports)).toBe(true);
+      expect(Array.isArray(result.exports)).toBe(true);
+    }, 30000);
 
-    it('extracts symbols', () => {
-      const symbols = extractSymbols(tree, key);
-      expect(symbols.length).toBeGreaterThan(0);
-      for (const sym of symbols) {
-        expect(sym.name).toBeTruthy();
-        expect(sym.kind).toBeTruthy();
-        expect(sym.startLine).toBeGreaterThan(0);
-        expect(sym.endLine).toBeGreaterThanOrEqual(sym.startLine);
-      }
-    });
-
-    it('extracts imports', () => {
-      const imports = extractImports(tree, key);
-      expect(Array.isArray(imports)).toBe(true);
-    });
-
-    it('extracts exports', () => {
-      const exports = extractExports(tree, key);
-      expect(Array.isArray(exports)).toBe(true);
-    });
-  });
-}
-
-for (const { key, name } of FILE_ONLY_LANGUAGES) {
-  describe(`${name} (${key}) — file-level only`, () => {
-    let tree: any;
-
-    it('loads WASM grammar', async () => {
-      const lang = await loadLanguage(key);
-      expect(lang).toBeTruthy();
-    }, 15000);
-
-    it('parses content', async () => {
-      const result = await parseContentAsync(SAMPLES[key], key);
-      tree = result.tree;
-      expect(result.rootNode).toBeTruthy();
-    }, 10000);
-
-    it('extracts symbols (may be empty)', () => {
-      const symbols = extractSymbols(tree, key);
-      expect(Array.isArray(symbols)).toBe(true);
-    });
+    if (info.supportsSymbols) {
+      it('extracts symbols', async () => {
+        const result = await adapter.parse(sample, `file${info.extensions[0] || ''}`);
+        expect(result.symbols.length).toBeGreaterThan(0);
+        for (const sym of result.symbols) {
+          expect(sym.name).toBeTruthy();
+          expect(sym.type).toBeTruthy();
+          expect(sym.startLine).toBeGreaterThan(0);
+          expect(sym.endLine).toBeGreaterThanOrEqual(sym.startLine);
+        }
+      }, 30000);
+    }
   });
 }

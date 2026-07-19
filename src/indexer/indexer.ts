@@ -1,13 +1,12 @@
-import { readFileSync, existsSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { logger } from '../logging.js';
 import { emitProgress } from '../progress.js';
-import { Config, MODEL_CONFIGS } from '../config/index.js';
-import { scanFiles, computeFileHash } from './file-utils.js';
-import { createIgnoreRules } from './ignore.js';
-import { initParser, loadLanguage, parseContentAsync, extractSymbols, extractImports, extractExports } from './parser.js';
+import { Config } from '../config/index.js';
+import { LanguageRegistry } from '../language/registry.js';
+import { SymbolType } from '../language/types.js';
+import { scanFiles, computeFileHash, ScannedFile } from './file-utils.js';
 import { Chunk, chunkFile } from './chunker.js';
-import { computeFileDelta, computeChunkDelta } from './incremental.js';
+import { computeFileDelta } from './incremental.js';
 
 export interface IndexFileResult {
   chunks: Chunk[];
@@ -23,6 +22,7 @@ export interface IndexerOptions {
   config: Config;
   rootPath: string;
   indexDir: string;
+  registry: LanguageRegistry;
   onIndex: IndexCallback;
   onDelete?: DeleteCallback;
   signal?: AbortSignal;
@@ -32,44 +32,29 @@ export class Indexer {
   private config: Config;
   private rootPath: string;
   private indexDir: string;
+  private registry: LanguageRegistry;
   private onIndex: IndexCallback;
   private onDelete?: DeleteCallback;
   private signal: AbortSignal;
-  private extToLang: Map<string, string>;
 
   constructor(opts: IndexerOptions) {
     this.config = opts.config;
     this.rootPath = opts.rootPath;
     this.indexDir = opts.indexDir;
+    this.registry = opts.registry;
     this.onIndex = opts.onIndex;
     this.onDelete = opts.onDelete;
     this.signal = opts.signal || new AbortController().signal;
-
-    this.extToLang = new Map();
-    for (const lang of this.config.languages) {
-      const exts = LANG_EXTENSIONS[lang] || [];
-      for (const ext of exts) {
-        this.extToLang.set(ext, lang);
-      }
-    }
   }
 
   async initialize() {
-    await initParser();
-    for (const lang of this.config.languages) {
-      try {
-        await loadLanguage(lang);
-        logger.verbose(`Loaded tree-sitter grammar for ${lang}`);
-      } catch (e) {
-        logger.error(`Failed to load tree-sitter grammar for ${lang}:`, e);
-      }
-    }
+    await this.registry.initialize(this.config.languages);
   }
 
   async runFullIndex(): Promise<Chunk[]> {
     emitProgress({ phase: 'scanning', current: 0, total: 0 });
 
-    const files = scanFiles(this.rootPath, this.config.languages);
+    const files = scanFiles(this.rootPath, this.registry);
     const allChunks: Chunk[] = [];
     let processed = 0;
 
@@ -103,7 +88,7 @@ export class Indexer {
   ): Promise<{ chunks: Chunk[]; removed: string[] }> {
     emitProgress({ phase: 'scanning', current: 0, total: 0 });
 
-    const scannedFiles = scanFiles(this.rootPath, this.config.languages);
+    const scannedFiles = scanFiles(this.rootPath, this.registry);
     const scannedMap = new Map(scannedFiles.map(f => [f.relativePath, f]));
     const delta = computeFileDelta(scannedMap, existingFileHashes);
 
@@ -155,27 +140,18 @@ export class Indexer {
     const content = readFileSync(filePath, 'utf-8');
     const lines = content.split('\n');
 
-    const { tree } = await parseContentAsync(content, language);
-    const symbols = extractSymbols(tree, language);
-    const imports = extractImports(tree, language);
-    const exports = extractExports(tree, language);
+    const { adapter } = this.registry.getAdapter(relativePath);
+    const result = await adapter.parse(content, relativePath);
 
     return chunkFile(
       filePath,
       relativePath,
       language,
-      symbols,
+      result.symbols,
       content,
       lines,
-      imports,
-      exports,
+      result.imports,
+      result.exports,
     );
   }
 }
-
-const LANG_EXTENSIONS: Record<string, string[]> = {
-  ts: ['.ts', '.tsx', '.mts', '.cts'],
-  js: ['.js', '.jsx', '.mjs', '.cjs'],
-  py: ['.py', '.pyw'],
-  go: ['.go'],
-};

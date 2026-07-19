@@ -24,7 +24,9 @@ Then ask any MCP client (OpenCode, Claude Code, Cline, Cursor, etc.) to search y
 
 ## Supported file types
 
-### Fully supported (symbol extraction)
+EDHIndex uses a pluggable **Language Adapter** architecture. Every language has its own adapter file. To add a new language, just create one adapter — no changes to the core engine.
+
+### Tier 1 — Full symbol extraction
 
 | Language | Key | Extensions | Symbols indexed |
 |----------|-----|-----------|----------------|
@@ -32,38 +34,37 @@ Then ask any MCP client (OpenCode, Claude Code, Cline, Cursor, etc.) to search y
 | JavaScript | `js` | `.js`, `.jsx`, `.mjs`, `.cjs` | functions, methods, classes |
 | Python | `py` | `.py`, `.pyw` | functions, classes |
 | Go | `go` | `.go` | functions, methods |
-| Rust | `rs` | `.rs` | functions, structs, traits, impls, enums |
+| Rust | `rs` | `.rs` | functions, structs, traits, enums |
 | Java | `java` | `.java` | methods, classes, interfaces, enums |
 | Ruby | `rb` | `.rb` | methods, classes, modules |
 | C | `c` | `.c`, `.h` | functions, structs |
 | C++ | `cpp` | `.cpp`, `.cxx`, `.cc`, `.c++`, `.hpp`, `.hxx`, `.hh` | functions, classes, structs, enums |
 | C# | `csharp` | `.cs` | methods, classes, interfaces, structs, enums |
 | PHP | `php` | `.php` | functions, methods, classes, interfaces |
-| Scala | `scala` | `.scala` | functions, classes, traits, objects, enums |
-| Haskell | `hs` | `.hs` | functions, classes |
-| Solidity | `solidity` | `.sol` | functions, events, errors, modifiers |
 
-### File-level only (no symbol extraction)
+### Tier 2 — Structural support (no symbol extraction, still chunked & searchable)
 
-These are parsed for chunking and search, but don't produce named symbols:
+| Language | Key | Extensions | What gets extracted |
+|----------|-----|-----------|-------------------|
+| HTML | `html` | `.html`, `.htm` | significant elements (section, nav, header, etc.) |
+| CSS | `css` | `.css`, `.scss`, `.less` | rule selectors |
+| JSON | `json` | `.json` | object keys |
 
-| Language | Key | Extensions |
-|----------|-----|-----------|
-| CSS/SCSS/Less | `css` | `.css`, `.scss`, `.less` |
-| JSON | `json` | `.json` |
-| HTML | `html` | `.html`, `.htm` |
+### Generic fallback
 
-### Not yet supported (no WASM grammar available)
+Any file with an unrecognized (non-binary) extension goes through the **GenericAdapter** — splits content by paragraphs, indexes as plain text. Never crashes.
 
-These languages are not indexed because their tree-sitter grammars don't ship pre-built WASM files on npm:
+### Not yet available (no WASM grammar on npm)
 
-Swift, Kotlin, Dart, Elm, Lua, YAML, TOML, SQL, Markdown
+Swift, Kotlin, Dart, Scala, Haskell, Solidity, Elm, Lua, YAML, TOML, SQL, Markdown
+
+These can be added later without modifying the indexer — just create an adapter.
 
 ### General rules
 
-- All files are parsed with **tree-sitter** for accurate AST-based symbol extraction, imports, and exports
+- Each file is parsed by its **Language Adapter** (tree-sitter WASM for Tier 1/2, paragraph splitter for generic)
 - Files larger than **10 MB** are skipped
-- Files with unrecognized extensions are silently skipped
+- Binary files are skipped
 - Generated files (`*.min.js`, `*.min.css`, `*.generated.ts`, `*.g.ts`, `package.json`, `tsconfig.json`) are skipped
 
 ## What gets ignored
@@ -201,7 +202,7 @@ Built on tree-sitter + SQLite + Cytoscape.js — all local, no telemetry, no clo
 
 ### Node/edge types
 
-**Node kinds**: `workspace`, `folder`, `file`, `module`, `class`, `interface`, `enum`, `function`, `method`, `variable`, `import`, `export`
+**Node kinds**: `workspace`, `folder`, `file`, `module`, `class`, `interface`, `enum`, `struct`, `trait`, `function`, `method`, `variable`, `constant`, `property`, `import`, `export`, `namespace`
 
 **Edge kinds**: `contains`, `imports`, `exports`, `inherits`, `implements`, `calls`, `references`, `defines`, `belongs_to`
 

@@ -9,6 +9,7 @@ import { FTSStore } from '../../storage/fts.js';
 import { TransformersEmbeddingProvider } from '../../embeddings/transformers.js';
 import { LanceDBStore } from '../../vector/lancedb.js';
 import { Indexer } from '../../indexer/indexer.js';
+import { defaultRegistry } from '../../language/registry.js';
 import cliProgress from 'cli-progress';
 import chalk from 'chalk';
 
@@ -44,6 +45,7 @@ export async function indexCommand(rootPath: string) {
     config,
     rootPath,
     indexDir,
+    registry: defaultRegistry,
     onIndex: async (result) => {
       for (const chunk of result.chunks) {
         metadataStore.upsertChunk({

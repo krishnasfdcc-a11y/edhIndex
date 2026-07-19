@@ -23,7 +23,7 @@ export interface Config {
 
 const DEFAULT_CONFIG: Config = {
   model: 'balanced',
-  languages: ['ts', 'js', 'py', 'go', 'rs', 'java', 'rb', 'c', 'cpp', 'csharp', 'php', 'scala', 'hs', 'solidity', 'css', 'json', 'html'],
+  languages: ['ts', 'js', 'py', 'go', 'rs', 'java', 'rb', 'c', 'cpp', 'csharp', 'php', 'html', 'css', 'json'],
   watch: true,
   rerank: true,
   maxResults: 10,
