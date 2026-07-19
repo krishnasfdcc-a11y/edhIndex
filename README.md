@@ -1,14 +1,15 @@
 # EDHIndex
 
+[![npm version](https://img.shields.io/npm/v/edhindex.svg)](https://www.npmjs.com/package/edhindex)
+
 Local-first hybrid code search engine with Knowledge Graph — zero telemetry, fully offline.
 
 ## Setup
 
 ```sh
-git clone <repo>
-cd edhIndex
-npm install        # installs deps + auto-builds
-npm link           # makes "edhindex" available globally
+npm install -g edhindex      # install globally
+# or
+npx edhindex                  # run without installing
 ```
 
 Then use it in any project:
