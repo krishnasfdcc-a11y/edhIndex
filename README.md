@@ -26,7 +26,9 @@ Then ask any MCP client (OpenCode, Claude Code, Cline, Cursor, etc.) to search y
 
 EDHIndex uses a pluggable **Language Adapter** architecture. Every language has its own adapter file. To add a new language, just create one adapter — no changes to the core engine.
 
-### Tier 1 — Full symbol extraction
+**38 adapters supporting 94+ file extensions** — from programming languages to config files, documentation, data formats, and infrastructure.
+
+### Tier 1 — Full symbol extraction (18 adapters)
 
 | Language | Key | Extensions | Symbols indexed |
 |----------|-----|-----------|----------------|
@@ -41,24 +43,42 @@ EDHIndex uses a pluggable **Language Adapter** architecture. Every language has 
 | C++ | `cpp` | `.cpp`, `.cxx`, `.cc`, `.c++`, `.hpp`, `.hxx`, `.hh` | functions, classes, structs, enums |
 | C# | `csharp` | `.cs` | methods, classes, interfaces, structs, enums |
 | PHP | `php` | `.php` | functions, methods, classes, interfaces |
+| **Swift** | `swift` | `.swift` | classes, structs, enums, protocols, extensions, actors, functions, methods |
+| **Kotlin** | `kotlin` | `.kt`, `.kts` | classes, interfaces, objects, enums, functions, properties |
+| **Dart** | `dart` | `.dart` | classes, mixins, extensions, enums, functions, methods |
+| **Scala** | `scala` | `.scala`, `.sc` | classes, traits, objects, enums, functions, methods |
+| **Haskell** | `haskell` | `.hs`, `.lhs` | data types, type classes, instances, functions |
+| **Solidity** | `solidity` | `.sol` | contracts, interfaces, libraries, structs, enums, functions |
+| **Lua** | `lua` | `.lua` | functions, methods, tables, variables |
 
-### Tier 2 — Structural support (no symbol extraction, still chunked & searchable)
+### Tier 2 — Structural support (20 adapters)
 
 | Language | Key | Extensions | What gets extracted |
 |----------|-----|-----------|-------------------|
 | HTML | `html` | `.html`, `.htm` | significant elements (section, nav, header, etc.) |
-| CSS | `css` | `.css`, `.scss`, `.less` | rule selectors |
-| JSON | `json` | `.json` | object keys |
+| CSS | `css` | `.css`, `.scss`, `.less` | rule selectors, variables, media queries |
+| JSON | `json` | `.json` | object keys, nested structures |
+| **JSON Variants** | `json-variants` | `.jsonc`, `.json5` | object keys (with comments support) |
+| **YAML** | `yaml` | `.yaml`, `.yml` | mappings, sequences, keys, anchors |
+| **TOML** | `toml` | `.toml` | tables, arrays, keys, values |
+| **XML** | `xml` | `.xml`, `*.xml` | elements, attributes, nested structures |
+| **Markdown** | `markdown` | `.md`, `.markdown` | headings, sections, code blocks, links |
+| **SQL** | `sql` | `.sql` | tables, views, indexes, functions, foreign keys |
+| **Vue** | `vue` | `.vue` | components, template, script, style sections |
+| **Svelte** | `svelte` | `.svelte` | components, script, style, Svelte blocks |
+| **Astro** | `astro` | `.astro` | frontmatter, components, style, script |
+| **Terraform** | `terraform` | `.tf`, `.tfvars` | blocks, attributes, resources, variables |
+| **Dockerfile** | `dockerfile` | `Dockerfile*` | FROM, RUN, CMD, COPY, ENV, EXPOSE |
+| **Salesforce** | `salesforce` | `.cls`, `.trigger`, `.page`, `.component`, etc. | classes, triggers, components, metadata |
+| **CSV** | `csv` | `.csv` | headers, columns, data structure |
+| **Config** | `config` | `.ini`, `.properties`, `.env`, `.conf`, `.cfg`, `.gitignore`, `.editorconfig` | sections, key-value pairs |
+| **Documentation** | `documentation` | `.rst`, `.adoc` | sections, headings, directives, code blocks |
+| **SVG** | `svg` | `.svg` | elements, IDs, classes, paths |
+| **Text** | `text` | `.txt`, `.log` | sections, paragraphs, log entries |
 
 ### Generic fallback
 
 Any file with an unrecognized (non-binary) extension goes through the **GenericAdapter** — splits content by paragraphs, indexes as plain text. Never crashes.
-
-### Not yet available (no WASM grammar on npm)
-
-Swift, Kotlin, Dart, Scala, Haskell, Solidity, Elm, Lua, YAML, TOML, SQL, Markdown
-
-These can be added later without modifying the indexer — just create an adapter.
 
 ### General rules
 
@@ -202,7 +222,7 @@ Built on tree-sitter + SQLite + Cytoscape.js — all local, no telemetry, no clo
 
 ### Node/edge types
 
-**Node kinds**: `workspace`, `folder`, `file`, `module`, `class`, `interface`, `enum`, `struct`, `trait`, `function`, `method`, `variable`, `constant`, `property`, `import`, `export`, `namespace`
+**Node kinds**: `workspace`, `folder`, `file`, `module`, `class`, `interface`, `enum`, `struct`, `trait`, `function`, `method`, `variable`, `constant`, `property`, `import`, `export`, `namespace`, `package`, `constructor`, `extension`, `field`, `type_alias`, `document`, `section`, `table`, `selector`, `rule`, `actor`, `object`, `protocol`
 
 **Edge kinds**: `contains`, `imports`, `exports`, `inherits`, `implements`, `calls`, `references`, `defines`, `belongs_to`
 

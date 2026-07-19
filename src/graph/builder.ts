@@ -226,6 +226,19 @@ export class GraphBuilder {
       case 'property': return 'variable';
       case 'module': return 'module';
       case 'namespace': return 'module';
+      case 'package': return 'package';
+      case 'constructor': return 'constructor';
+      case 'extension': return 'extension';
+      case 'field': return 'field';
+      case 'type_alias': return 'type_alias';
+      case 'document': return 'document';
+      case 'section': return 'section';
+      case 'table': return 'table';
+      case 'selector': return 'selector';
+      case 'rule': return 'rule';
+      case 'actor': return 'actor';
+      case 'object': return 'object';
+      case 'protocol': return 'protocol';
       default: return 'module';
     }
   }

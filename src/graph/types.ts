@@ -10,7 +10,20 @@ export type NodeType =
   | 'method'
   | 'variable'
   | 'import'
-  | 'export';
+  | 'export'
+  | 'package'
+  | 'constructor'
+  | 'extension'
+  | 'field'
+  | 'type_alias'
+  | 'document'
+  | 'section'
+  | 'table'
+  | 'selector'
+  | 'rule'
+  | 'actor'
+  | 'object'
+  | 'protocol';
 
 export type EdgeType =
   | 'contains'

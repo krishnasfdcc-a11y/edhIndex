@@ -19,7 +19,7 @@ const program = new Command();
 program
   .name('edhindex')
   .description('Local-first hybrid code search engine with MCP')
-  .version('1.0.0')
+  .version('2.0.0')
   .option('-v, --verbose', 'Enable verbose logging')
   .option('--debug', 'Enable debug logging')
   .hook('preAction', (thisCommand) => {

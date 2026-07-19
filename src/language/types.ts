@@ -18,6 +18,19 @@ export enum SymbolType {
   Export = 'export',
   Comment = 'comment',
   Unknown = 'unknown',
+  Package = 'package',
+  Constructor = 'constructor',
+  Extension = 'extension',
+  Field = 'field',
+  TypeAlias = 'type_alias',
+  Document = 'document',
+  Section = 'section',
+  Table = 'table',
+  Selector = 'selector',
+  Rule = 'rule',
+  Actor = 'actor',
+  Object = 'object',
+  Protocol = 'protocol',
 }
 
 export interface CodeSymbol {

@@ -13,6 +13,30 @@ import { PhpAdapter } from './adapters/php.js';
 import { HtmlAdapter } from './adapters/html.js';
 import { CssAdapter } from './adapters/css.js';
 import { JsonAdapter } from './adapters/json.js';
+import { SwiftAdapter } from './adapters/swift.js';
+import { KotlinAdapter } from './adapters/kotlin.js';
+import { DartAdapter } from './adapters/dart.js';
+import { ScalaAdapter } from './adapters/scala.js';
+import { HaskellAdapter } from './adapters/haskell.js';
+import { SolidityAdapter } from './adapters/solidity.js';
+import { LuaAdapter } from './adapters/lua.js';
+import { YamlAdapter } from './adapters/yaml.js';
+import { TomlAdapter } from './adapters/toml.js';
+import { SqlAdapter } from './adapters/sql.js';
+import { MarkdownAdapter } from './adapters/markdown.js';
+import { XmlAdapter } from './adapters/xml.js';
+import { VueAdapter } from './adapters/vue.js';
+import { SvelteAdapter } from './adapters/svelte.js';
+import { TerraformAdapter } from './adapters/terraform.js';
+import { DockerfileAdapter } from './adapters/dockerfile.js';
+import { SalesforceAdapter } from './adapters/salesforce.js';
+import { CsvAdapter } from './adapters/csv.js';
+import { JsonVariantsAdapter } from './adapters/json-variants.js';
+import { ConfigAdapter } from './adapters/config.js';
+import { DocumentationAdapter } from './adapters/documentation.js';
+import { SvgAdapter } from './adapters/svg.js';
+import { TextAdapter } from './adapters/text.js';
+import { AstroAdapter } from './adapters/astro.js';
 import { GenericAdapter } from './generic.js';
 
 export type AdapterEntry = {
@@ -33,6 +57,7 @@ export class LanguageRegistry {
   }
 
   private registerDefaults() {
+    // Tier 1: Full symbol extraction (programming languages)
     this.register('ts', new TypeScriptAdapter(), 1);
     this.register('js', new JavaScriptAdapter(), 1);
     this.register('py', new PythonAdapter(), 1);
@@ -44,9 +69,37 @@ export class LanguageRegistry {
     this.register('cpp', new CppAdapter(), 1);
     this.register('csharp', new CSharpAdapter(), 1);
     this.register('php', new PhpAdapter(), 1);
+    this.register('swift', new SwiftAdapter(), 1);
+    this.register('kotlin', new KotlinAdapter(), 1);
+    this.register('dart', new DartAdapter(), 1);
+    this.register('scala', new ScalaAdapter(), 1);
+    this.register('haskell', new HaskellAdapter(), 1);
+    this.register('solidity', new SolidityAdapter(), 1);
+    this.register('lua', new LuaAdapter(), 1);
+    
+    // Tier 2: Structural extraction (markup, config, data)
     this.register('html', new HtmlAdapter(), 2);
     this.register('css', new CssAdapter(), 2);
     this.register('json', new JsonAdapter(), 2);
+    this.register('yaml', new YamlAdapter(), 2);
+    this.register('toml', new TomlAdapter(), 2);
+    this.register('sql', new SqlAdapter(), 2);
+    this.register('markdown', new MarkdownAdapter(), 2);
+    
+    // Tier 2: Additional markup and config languages
+    this.register('xml', new XmlAdapter(), 2);
+    this.register('vue', new VueAdapter(), 2);
+    this.register('svelte', new SvelteAdapter(), 2);
+    this.register('terraform', new TerraformAdapter(), 2);
+    this.register('dockerfile', new DockerfileAdapter(), 2);
+    this.register('salesforce', new SalesforceAdapter(), 2);
+    this.register('csv', new CsvAdapter(), 2);
+    this.register('json-variants', new JsonVariantsAdapter(), 2);
+    this.register('config', new ConfigAdapter(), 2);
+    this.register('documentation', new DocumentationAdapter(), 2);
+    this.register('svg', new SvgAdapter(), 2);
+    this.register('text', new TextAdapter(), 2);
+    this.register('astro', new AstroAdapter(), 2);
   }
 
   register(key: string, adapter: LanguageAdapter, tier: 1 | 2 | 3) {
