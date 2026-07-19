@@ -2,12 +2,21 @@
 
 Local-first hybrid code search engine with Knowledge Graph — zero telemetry, fully offline.
 
-## Quick start
+## Setup
 
 ```sh
 git clone <repo>
-cd edhIndex && npm install && npm run build && npm link
-cd ~/your-project && edhindex init && edhindex start
+cd edhIndex
+npm install        # installs deps + auto-builds
+npm link           # makes "edhindex" available globally
+```
+
+Then use it in any project:
+
+```sh
+cd ~/your-project
+edhindex init
+edhindex start
 ```
 
 ## Commands

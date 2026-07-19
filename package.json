@@ -9,8 +9,14 @@
   "exports": {
     ".": "./dist/index.js"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
+    "postinstall": "tsc",
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "start": "node dist/cli/index.js",
     "dev": "npx tsx src/cli/index.ts"
   },
