@@ -23,6 +23,20 @@ const LANGUAGE_EXTENSIONS: Record<string, string[]> = {
   js: ['.js', '.jsx', '.mjs', '.cjs'],
   py: ['.py', '.pyw'],
   go: ['.go'],
+  rs: ['.rs'],
+  java: ['.java'],
+  rb: ['.rb'],
+  c: ['.c', '.h'],
+  cpp: ['.cpp', '.cxx', '.cc', '.c++', '.hpp', '.hxx', '.hh'],
+  csharp: ['.cs'],
+  php: ['.php'],
+  scala: ['.scala'],
+  hs: ['.hs'],
+  dart: ['.dart'],
+  solidity: ['.sol'],
+  css: ['.css', '.scss', '.less'],
+  json: ['.json'],
+  html: ['.html', '.htm'],
 };
 
 const EXTENSION_TO_LANG: Record<string, string> = {};

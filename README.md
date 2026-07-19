@@ -24,14 +24,48 @@ Then ask any MCP client (OpenCode, Claude Code, Cline, Cursor, etc.) to search y
 
 ## Supported file types
 
-| Language | Extensions | Symbols indexed |
-|----------|-----------|----------------|
-| TypeScript | `.ts`, `.tsx`, `.mts`, `.cts` | functions, methods, classes, interfaces, enums |
-| JavaScript | `.js`, `.jsx`, `.mjs`, `.cjs` | functions, methods, classes |
-| Python | `.py`, `.pyw` | functions, classes |
-| Go | `.go` | functions, methods |
+### Fully supported (symbol extraction)
 
-All files are parsed with tree-sitter for accurate symbol extraction, imports, and exports. Unsupported file extensions are silently skipped. Files larger than 10 MB are also skipped.
+| Language | Key | Extensions | Symbols indexed |
+|----------|-----|-----------|----------------|
+| TypeScript | `ts` | `.ts`, `.tsx`, `.mts`, `.cts` | functions, methods, classes, interfaces, enums |
+| JavaScript | `js` | `.js`, `.jsx`, `.mjs`, `.cjs` | functions, methods, classes |
+| Python | `py` | `.py`, `.pyw` | functions, classes |
+| Go | `go` | `.go` | functions, methods |
+| Rust | `rs` | `.rs` | functions, structs, traits, impls, enums |
+| Java | `java` | `.java` | methods, classes, interfaces, enums |
+| Ruby | `rb` | `.rb` | methods, classes, modules |
+| C | `c` | `.c`, `.h` | functions, structs |
+| C++ | `cpp` | `.cpp`, `.cxx`, `.cc`, `.c++`, `.hpp`, `.hxx`, `.hh` | functions, classes, structs, enums |
+| C# | `csharp` | `.cs` | methods, classes, interfaces, structs, enums |
+| PHP | `php` | `.php` | functions, methods, classes, interfaces |
+| Scala | `scala` | `.scala` | functions, classes, traits, objects, enums |
+| Haskell | `hs` | `.hs` | functions, classes |
+| Dart | `dart` | `.dart` | functions, methods, classes, enums |
+| Solidity | `solidity` | `.sol` | functions, events, errors, modifiers |
+
+### File-level only (no symbol extraction)
+
+These are parsed for chunking and search, but don't produce named symbols:
+
+| Language | Key | Extensions |
+|----------|-----|-----------|
+| CSS/SCSS/Less | `css` | `.css`, `.scss`, `.less` |
+| JSON | `json` | `.json` |
+| HTML | `html` | `.html`, `.htm` |
+
+### Not yet supported (no WASM grammar available)
+
+These languages are not indexed because their tree-sitter grammars don't ship pre-built WASM files on npm:
+
+Swift, Kotlin, Elm, Lua, YAML, TOML, SQL, Markdown
+
+### General rules
+
+- All files are parsed with **tree-sitter** for accurate AST-based symbol extraction, imports, and exports
+- Files larger than **10 MB** are skipped
+- Files with unrecognized extensions are silently skipped
+- Generated files (`*.min.js`, `*.min.css`, `*.generated.ts`, `*.g.ts`, `package.json`, `tsconfig.json`) are skipped
 
 ## What gets ignored
 
