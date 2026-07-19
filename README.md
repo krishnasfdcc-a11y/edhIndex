@@ -41,7 +41,6 @@ Then ask any MCP client (OpenCode, Claude Code, Cline, Cursor, etc.) to search y
 | PHP | `php` | `.php` | functions, methods, classes, interfaces |
 | Scala | `scala` | `.scala` | functions, classes, traits, objects, enums |
 | Haskell | `hs` | `.hs` | functions, classes |
-| Dart | `dart` | `.dart` | functions, methods, classes, enums |
 | Solidity | `solidity` | `.sol` | functions, events, errors, modifiers |
 
 ### File-level only (no symbol extraction)
@@ -58,7 +57,7 @@ These are parsed for chunking and search, but don't produce named symbols:
 
 These languages are not indexed because their tree-sitter grammars don't ship pre-built WASM files on npm:
 
-Swift, Kotlin, Elm, Lua, YAML, TOML, SQL, Markdown
+Swift, Kotlin, Dart, Elm, Lua, YAML, TOML, SQL, Markdown
 
 ### General rules
 

@@ -32,7 +32,6 @@ const LANGUAGE_EXTENSIONS: Record<string, string[]> = {
   php: ['.php'],
   scala: ['.scala'],
   hs: ['.hs'],
-  dart: ['.dart'],
   solidity: ['.sol'],
   css: ['.css', '.scss', '.less'],
   json: ['.json'],

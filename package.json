@@ -1,6 +1,6 @@
 {
   "name": "edhindex",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Local-first hybrid code search engine with knowledge graph — BM25 + vector + rerank, tree-sitter parsing, MCP server",
   "keywords": [
     "code-search",
@@ -43,7 +43,8 @@
     "build": "tsc",
     "prepublishOnly": "npm run build",
     "start": "node dist/cli/index.js",
-    "dev": "npx tsx src/cli/index.ts"
+    "dev": "npx tsx src/cli/index.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
@@ -78,6 +79,7 @@
     "@types/better-sqlite3": "^7.6.13",
     "@types/cli-progress": "^3.11.6",
     "@types/node": "^22.13.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.10"
   }
 }

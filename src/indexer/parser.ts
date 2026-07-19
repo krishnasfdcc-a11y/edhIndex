@@ -71,9 +71,6 @@ export async function loadLanguage(language: string): Promise<any> {
     case 'hs':
       wasmPath = require.resolve('tree-sitter-haskell/tree-sitter-haskell.wasm');
       break;
-    case 'dart':
-      wasmPath = require.resolve('tree-sitter-dart/tree-sitter-dart.wasm');
-      break;
     case 'solidity':
       wasmPath = require.resolve('tree-sitter-solidity/tree-sitter-solidity.wasm');
       break;
@@ -233,12 +230,6 @@ const QUERY_PATTERNS: Record<string, Record<string, string>> = {
     function: '(function name: (variable) @name)',
     class: '(class name: (type) @name)',
   },
-  dart: {
-    method: '(method_declaration name: (identifier) @name)',
-    function: '(function_declaration name: (identifier) @name)',
-    class: '(class_declaration name: (identifier) @name)',
-    enum: '(enum_declaration name: (identifier) @name)',
-  },
   solidity: {
     function: '(function_definition name: (identifier) @name)',
     event: '(event_definition name: (identifier) @name)',
@@ -371,14 +362,6 @@ function nodeTypeToKind(type: string, language: string): SymbolInfo['kind'] | nu
       switch (type) {
         case 'function': return 'function';
         case 'class': return 'interface';
-        default: return null;
-      }
-    case 'dart':
-      switch (type) {
-        case 'method_declaration': return 'method';
-        case 'function_declaration': return 'function';
-        case 'class_declaration': return 'class';
-        case 'enum_declaration': return 'enum';
         default: return null;
       }
     case 'solidity':
