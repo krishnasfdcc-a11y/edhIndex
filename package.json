@@ -14,7 +14,7 @@
     "src"
   ],
   "scripts": {
-    "postinstall": "tsc",
+    "postinstall": "npx tsc || true",
     "build": "tsc",
     "prepublishOnly": "npm run build",
     "start": "node dist/cli/index.js",
